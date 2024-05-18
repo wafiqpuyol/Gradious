@@ -28,8 +28,11 @@ class UserController {
             const result = await userService.authenticateUser(req.body);
             successResponse.message = "Login successful";
             successResponse.statusCode = StatusCodes.OK;
+            successResponse.data = {
+                userId: result.userId
+            }
             return res.
-                cookie("auth_token", result, { httpOnly: true })
+                cookie("auth_token", result.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 86400000 })
                 .status(successResponse.statusCode)
                 .json(successResponse)
         } catch (error: any) {

@@ -40,7 +40,7 @@ class UserService {
                 userName: `${isUserExist.firstName} ${isUserExist.lastName}`
             }
             const token = auth.generateToken(payload);
-            return token;
+            return { token, userId: payload.id };
         } catch (error: any) {
             throw new Error(error);
         }

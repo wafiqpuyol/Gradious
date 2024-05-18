@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { signUpSchema } from "../schema/signup"
 import { StatusCodes } from 'http-status-codes';
-import { errorResponse } from "../utils/response"
+import { errorResponse } from "../utils/common/response"
 
 class UserMiddleware {
     validateSignupData = (req: Request, res: Response, next: NextFunction) => {

@@ -1,5 +1,5 @@
 import { User } from "../types/user"
-import { genSalt, hash } from "bcryptjs"
+import { auth } from "../utils/common/auth"
 import { userRepository } from "../repositories"
 
 
@@ -10,19 +10,7 @@ class UserService {
             if (isUserExist) {
                 return ("User already exist")
             }
-            const hashedPassword = await new Promise((resolve, reject) => {
-                genSalt(12, (err, salt) => {
-                    if (err) {
-                        reject(err.message)
-                    }
-                    hash(password, salt, function (err, hash) {
-                        if (err) {
-                            reject(err.message)
-                        }
-                        resolve(hash);
-                    });
-                })
-            }) as string
+            const hashedPassword = await auth.generateHash(password)
 
             await userRepository.create({
                 firstName,

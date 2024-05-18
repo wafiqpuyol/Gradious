@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { userService } from "../services"
-import { successResponse, errorResponse } from "../utils/response"
+import { successResponse, errorResponse } from "../utils/common/response"
 import { StatusCodes } from 'http-status-codes';
 
 

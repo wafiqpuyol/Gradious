@@ -1,13 +1,25 @@
 import { NextFunction, Request, Response } from "express";
-import { signUpSchema } from "../schema/signup"
 import { StatusCodes } from 'http-status-codes';
-import { errorResponse } from "../utils/common/response"
+import { loginSchema } from "../schema/login";
+import { signUpSchema } from "../schema/signup";
+import { errorResponse } from "../utils/common/response";
 
 class UserMiddleware {
     validateSignupData = (req: Request, res: Response, next: NextFunction) => {
         const registrationData = signUpSchema.safeParse(req.body)
         if (!registrationData.success) {
             errorResponse.message = registrationData.error.message;
+            errorResponse.statusCode = StatusCodes.BAD_REQUEST;
+            return res.status(errorResponse.statusCode).json(errorResponse);
+        }
+        next()
+    }
+
+    validateSignInData(req: Request, res: Response, next: NextFunction) {
+        const loginData = loginSchema.safeParse(req.body)
+        if (!loginData.success) {
+            errorResponse.message = loginData.error.errors[0].message;
+            errorResponse.path = loginData.error.errors[0].path;
             errorResponse.statusCode = StatusCodes.BAD_REQUEST;
             return res.status(errorResponse.statusCode).json(errorResponse);
         }

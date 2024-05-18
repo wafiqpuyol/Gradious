@@ -22,6 +22,25 @@ class UserController {
             return res.status(successResponse.statusCode).json(errorResponse)
         }
     }
+
+    async authenticateUser(req: Request, res: Response) {
+        try {
+            const result = await userService.authenticateUser(req.body);
+            successResponse.message = "Login successful";
+            successResponse.statusCode = StatusCodes.OK;
+            return res.
+                cookie("auth_token", result, { httpOnly: true })
+                .status(successResponse.statusCode)
+                .json(successResponse)
+        } catch (error: any) {
+            errorResponse.message = error.message || "Something went wrong while authenticating user."
+            errorResponse.origin = "authenticateUser() controller method error"
+            errorResponse.statusCode = error.message.includes("Password") || error.message.includes("User") ? StatusCodes.UNAUTHORIZED : StatusCodes.INTERNAL_SERVER_ERROR;
+            return res
+                .status(errorResponse.statusCode)
+                .json(errorResponse)
+        }
+    }
 }
 
 export const userController = new UserController();

@@ -8,7 +8,7 @@ class UserRepository extends CrudRepository {
 
     async findByEmail(email: string) {
         try {
-            return await User.findOne({ email })
+            return await User.findOne({ email }).lean()
         } catch (error: any) {
             throw new Error(error)
         }

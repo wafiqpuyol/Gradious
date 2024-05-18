@@ -1,4 +1,6 @@
-import { genSalt, hash } from "bcryptjs"
+import { genSalt, hash, compare } from "bcryptjs"
+import { sign } from "jsonwebtoken"
+import { IJwtPayload } from "../../types/user"
 
 class Auth {
     async generateHash(rawPassword: string): Promise<string> {
@@ -15,6 +17,16 @@ class Auth {
                 });
             })
         }) as string
+    }
+
+    async checkPassword(rawPassword: string, hashedPassword: string): Promise<boolean> {
+        return await compare(rawPassword, hashedPassword);
+    }
+
+    generateToken(payload: IJwtPayload): string {
+        return sign({
+            data: payload
+        }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
     }
 }
 

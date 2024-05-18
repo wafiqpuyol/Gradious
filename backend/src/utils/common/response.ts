@@ -13,5 +13,6 @@ export const errorResponse = {
     message: "Something went wrong",
     error: {},
     statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-    origin: ""
+    origin: "",
+    path: [] as (string | number)[]
 }

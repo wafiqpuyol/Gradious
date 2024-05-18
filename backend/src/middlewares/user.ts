@@ -8,7 +8,8 @@ class UserMiddleware {
     validateSignupData = (req: Request, res: Response, next: NextFunction) => {
         const registrationData = signUpSchema.safeParse(req.body)
         if (!registrationData.success) {
-            errorResponse.message = registrationData.error.message;
+            errorResponse.message = registrationData.error.errors[0].message;
+            errorResponse.path = registrationData.error.errors[0].path;
             errorResponse.statusCode = StatusCodes.BAD_REQUEST;
             return res.status(errorResponse.statusCode).json(errorResponse);
         }

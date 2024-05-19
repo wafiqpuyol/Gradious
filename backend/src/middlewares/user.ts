@@ -21,7 +21,7 @@ class UserMiddleware {
         if (!loginData.success) {
             errorResponse.message = loginData.error.errors[0].message;
             errorResponse.path = loginData.error.errors[0].path;
-            errorResponse.statusCode = StatusCodes.BAD_REQUEST;
+            errorResponse.statusCode = StatusCodes.UNAUTHORIZED;
             return res.status(errorResponse.statusCode).json(errorResponse);
         }
         next()

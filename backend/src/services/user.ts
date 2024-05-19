@@ -8,7 +8,7 @@ class UserService {
         try {
             const isUserExist = await userRepository.findByEmail(email)
             if (isUserExist) {
-                return ("User already exist")
+                throw new Error("User already exist");
             }
             const hashedPassword = await auth.generateHash(password)
 
@@ -18,9 +18,9 @@ class UserService {
                 email,
                 password: hashedPassword
             })
-            return;
+            return "User created successfully";
         } catch (error: any) {
-            throw new Error(error)
+            throw error
         }
     }
 
@@ -39,10 +39,11 @@ class UserService {
                 email: isUserExist.email,
                 userName: `${isUserExist.firstName} ${isUserExist.lastName}`
             }
-            const token = auth.generateToken(payload);
-            return { token, userId: payload.id };
+            const accessToken = auth.generateToken(payload, "15s");
+            const refreshToken = auth.generateToken(payload, "1d");
+            return { accessToken, refreshToken, userId: payload.id };
         } catch (error: any) {
-            throw new Error(error);
+            throw error;
         }
     }
 }

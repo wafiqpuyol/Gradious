@@ -23,10 +23,10 @@ class Auth {
         return await compare(rawPassword, hashedPassword);
     }
 
-    generateToken(payload: IJwtPayload): string {
+    generateToken(payload: IJwtPayload, expiration: string): string {
         return sign({
             data: payload
-        }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+        }, process.env.JWT_SECRET as string, { expiresIn: expiration });
     }
 }
 

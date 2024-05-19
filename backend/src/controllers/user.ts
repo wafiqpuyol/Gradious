@@ -8,18 +8,24 @@ class UserController {
     async createUser(req: Request, res: Response) {
         try {
             const result = await userService.createUser(req.body)
-            successResponse.message = result || "User created successfully";
-            successResponse.statusCode = result ? StatusCodes.BAD_REQUEST : StatusCodes.CREATED;
+            successResponse.message = result;
+            successResponse.statusCode = StatusCodes.CREATED;
             return res.status(successResponse.statusCode).json(successResponse)
         } catch (error: any) {
             if (error.message.includes("Mongo")) {
                 errorResponse.message = error.message || "Something went wrong while querying database."
+            } else if (error.message === "User already exist") {
+                console.log(error.message);
+                errorResponse.statusCode = StatusCodes.CONFLICT
+                errorResponse.message = error.message || "Something went wrong while registering user"
             } else {
-                successResponse.message = "Something went wrong."
+                errorResponse.statusCode = StatusCodes.INTERNAL_SERVER_ERROR
+                errorResponse.message = error.message || "Something went wrong while registering user."
             }
             successResponse.origin = "createUser() controller method error"
             errorResponse.error = { ...error }
-            return res.status(successResponse.statusCode).json(errorResponse)
+            console.log(errorResponse);
+            return res.status(errorResponse.statusCode).json(errorResponse);
         }
     }
 
@@ -31,18 +37,31 @@ class UserController {
             successResponse.data = {
                 userId: result.userId
             }
-            return res.
-                cookie("auth_token", result.token, { httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 86400000 })
-                .status(successResponse.statusCode)
-                .json(successResponse)
+
+            res.cookie("access_token", `${result.accessToken}`, { httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 15000 })
+            res.cookie("refresh_token", `${result.refreshToken}`, { httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 86400000 })
+            return res.status(successResponse.statusCode)
+                .json(successResponse);
         } catch (error: any) {
-            errorResponse.message = error.message || "Something went wrong while authenticating user."
             errorResponse.origin = "authenticateUser() controller method error"
-            errorResponse.statusCode = error.message.includes("Password") || error.message.includes("User") ? StatusCodes.UNAUTHORIZED : StatusCodes.INTERNAL_SERVER_ERROR;
+            if (error.message === "User already exist") {
+                errorResponse.message = error.message
+                errorResponse.statusCode = StatusCodes.CONFLICT
+            } else if (error.message === "Invalid email or password") {
+                errorResponse.message = error.message
+                errorResponse.statusCode = StatusCodes.UNAUTHORIZED;
+            } else {
+                errorResponse.message = error.message || "Something went wrong while authenticating user."
+                errorResponse.statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+            }
             return res
                 .status(errorResponse.statusCode)
                 .json(errorResponse)
         }
+    }
+
+    async signOutUser(req: Request, res: Response) {
+        res.cookie("auth_token", "", { expires: new Date(0) }).send();
     }
 }
 

@@ -7,6 +7,7 @@ import { useMutation } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { useToast } from "../hooks/use-toast"
 import { StatusCodes } from "http-status-codes"
+import { API_BASE_URL } from "../lib/constant"
 
 const SignIn = () => {
     const { toast } = useToast();
@@ -21,7 +22,7 @@ const SignIn = () => {
     })
     const { mutate } = useMutation({
         mutationFn: async (payload: loginPayload) => {
-            const { data, status } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/users/auth/signin`, payload, { withCredentials: true })
+            const { data, status } = await axios.post(`${API_BASE_URL}/api/v1/users/auth/signin`, payload, { withCredentials: true })
             return { data, status };
         },
         onSuccess() {

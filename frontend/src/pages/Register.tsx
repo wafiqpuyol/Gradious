@@ -2,18 +2,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { StatusCodes } from 'http-status-codes';
 import { useForm } from "react-hook-form"
 import { signUpSchema, signUpPayload } from "../lib/schema"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import axios, { AxiosError } from "axios"
 import { useToast } from "../hooks/use-toast"
 import { useNavigate } from 'react-router-dom'
 import { Link } from "react-router-dom"
 import { useTransition } from 'react';
-import { cn } from '../lib/utils';
+import { API_BASE_URL } from "../lib/constant"
 
 const Register = () => {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast()
-    const queryClient = useQueryClient()
     const navigate = useNavigate();
     const { register, formState: { errors }, handleSubmit, reset } = useForm<signUpPayload>({
         resolver: zodResolver(signUpSchema),
@@ -28,11 +27,10 @@ const Register = () => {
 
     const { mutate } = useMutation({
         mutationFn: async (payload: signUpPayload) => {
-            const { data, status } = await axios.post(`${import.meta.env.VITE_SERVER_URL}/users/auth/signup`, payload);
-            return { data, status };
+            await axios.post(`${API_BASE_URL}/api/v1/users/auth/signup`, payload);
         },
         onError: (err) => {
-            console.log(err);
+            reset();
             if (err instanceof AxiosError) {
                 if (err.response?.status === StatusCodes.CONFLICT)
                     return toast({
@@ -60,9 +58,10 @@ const Register = () => {
                 variant: "destructive"
             })
         },
-        onSuccess: (data) => {
-            console.log(data);
-            queryClient.invalidateQueries()
+        onSuccess: () => {
+            toast({
+                title: "User registered successfully",
+            })
             reset();
             navigate("/login")
         }

@@ -1,8 +1,10 @@
 import { useMutation } from "@tanstack/react-query"
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useToast } from "../hooks/use-toast"
+import { useNavigate } from "react-router-dom";
 
 const SignOutButton = () => {
+    const navigate = useNavigate()
     const { toast } = useToast();
 
     const { mutate } = useMutation({
@@ -16,6 +18,16 @@ const SignOutButton = () => {
             })
         },
         onError: (err) => {
+            if (err instanceof AxiosError) {
+                if (err.response?.data.message.includes("Missing access token")) {
+                    navigate("/signin");
+                    return toast({
+                        title: err.response?.data.message || err.message,
+                        description: "Please login in again",
+                        variant: "destructive"
+                    });
+                }
+            }
             return toast({
                 title: err.message,
                 description: "Please try again with different credentials",

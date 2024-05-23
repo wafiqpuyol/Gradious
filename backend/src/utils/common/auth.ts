@@ -1,6 +1,10 @@
 import { genSalt, hash, compare } from "bcryptjs"
-import { sign } from "jsonwebtoken"
-import { IJwtPayload } from "../../types/user"
+import { sign, verify, JwtPayload } from "jsonwebtoken"
+import { IJwtPayload } from "../../types"
+
+declare module 'jsonwebtoken' {
+    export interface JwtPayload extends IJwtPayload { }
+}
 
 class Auth {
     async generateHash(rawPassword: string): Promise<string> {
@@ -27,6 +31,28 @@ class Auth {
         return sign({
             data: payload
         }, process.env.JWT_SECRET as string, { expiresIn: expiration });
+    }
+
+    async validateToken(accessToken: string) {
+        try {
+            const decodedPayload = await (new Promise((resolve, reject) => {
+                verify(accessToken, process.env.JWT_SECRET as string, (err, decoded) => {
+                    console.log(err);
+                    if (err) {
+                        reject(err.message);
+                    }
+                    resolve(decoded);
+                })
+            }));
+            console.log(decodedPayload);
+            if (!decodedPayload) {
+                throw new Error("Invalid access token");
+            }
+            return decodedPayload
+        } catch (error: any) {
+            console.log(error.message);
+            throw error;
+        }
     }
 }
 

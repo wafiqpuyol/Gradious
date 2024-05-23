@@ -3,6 +3,16 @@ import { StatusCodes } from 'http-status-codes';
 import { loginSchema } from "../schema/login";
 import { signUpSchema } from "../schema/signup";
 import { errorResponse } from "../utils/common/response";
+import { auth } from "../utils/common/auth"
+import { JwtPayload, TokenExpiredError } from "jsonwebtoken";
+
+declare global {
+    namespace Express {
+        interface Request {
+            userId: string
+        }
+    }
+}
 
 class UserMiddleware {
     validateSignupData = (req: Request, res: Response, next: NextFunction) => {
@@ -25,6 +35,30 @@ class UserMiddleware {
             return res.status(errorResponse.statusCode).json(errorResponse);
         }
         next()
+    }
+
+    async verifyToken(req: Request, res: Response, next: NextFunction) {
+        const token = req.cookies["access_token"];
+        if (!token) {
+            errorResponse.message = "Missing access token"
+            errorResponse.statusCode = StatusCodes.FORBIDDEN;
+            return res.status(errorResponse.statusCode).json(errorResponse);
+        }
+        try {
+            const payload = await auth.validateToken(token);
+            if (payload) {
+                req.userId = (payload as JwtPayload).data.id
+            }
+            next();
+        } catch (error: any) {
+            errorResponse.message = error.message || "Something went wrong while validating access token"
+            if (error instanceof TokenExpiredError) {
+                errorResponse.statusCode = StatusCodes.FORBIDDEN;
+            } else {
+                errorResponse.statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+            }
+            return res.status(errorResponse.statusCode).json(errorResponse);
+        }
     }
 }
 
